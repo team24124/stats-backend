@@ -1,9 +1,7 @@
 import requests
 
-from app import Controller
 from stats.data import get_auth
-from stats.event import create_team_list, get_all_events, get_all_events_by_teams, Event, validate_event
-from stats.export import save_team_data
+from stats.event import create_team_list, get_all_events, get_all_events_by_teams
 from stats.team import Team
 from datetime import datetime
 import numpy as np
@@ -127,28 +125,19 @@ def calculate_start_avg(events, season):
     print(f"Average Total: {avg_total}, Average Auto: {avg_auto}, Average TeleOP: {avg_teleop}")
     return avg_total, avg_auto, avg_teleop
 
-def calculate_event_epa_opr(teams, season, controller, region_code=""):
+def calculate_event_epa_opr(teams, season, region_code=""):
     """
     Calculate and update epa and opr for all teams at a specified event
     :param season: Four digit year representing the season
     :param teams: List of teams participating at the event
-    :param controller: App controller to handle different settings
     :param region_code: Optional, region code used to determine starting averages for EPA
     :return: A list of all teams who have participated in an event with updated statistics
     """
 
     events = get_all_events_by_teams(teams, season) # Get all events that the teams have participated in
 
-    # Create this dictionary of data in order to be able to export events as JSON
-    event_data = {}
-    for event in events:
-        event_code = event[1]
-        event_obj = validate_event(event_code, season)
-        if event_obj is not None:
-            event_data[event_code] = event_obj
-    controller.shared_data["all_considered_events"] = event_data
 
-    all_teams = calculate_all_epa_opr(events, season, controller, region_code) # Calculate relevant epa/opr for all teams in those events
+    all_teams = calculate_all_epa_opr(events, season, region_code) # Calculate relevant epa/opr for all teams in those events
 
 
 
@@ -158,32 +147,19 @@ def calculate_event_epa_opr(teams, season, controller, region_code=""):
     print("Calculations complete!")
     return event_teams
 
-def calculate_world_epa_opr(season, controller: Controller, region_code=""):
+def calculate_world_epa_opr(season, region_code=""):
     all_teams: dict[str, Team]
     all_events = get_all_events()
-
-    # Create this dictionary of data in order to be able to export events as JSON
-    event_data = {}
-    for event in all_events:
-        event_code = event[1]
-        event_obj = validate_event(event_code, season)
-
-        print(f"Processing {event_code}")
-        if event_obj is not None:
-            event_data[event_code] = event_obj
-    controller.shared_data["all_considered_events"] = event_data
-
-    all_teams = calculate_all_epa_opr(all_events, season, controller, region_code)
+    all_teams = calculate_all_epa_opr(all_events, season, region_code)
 
     print("Calculations complete!")
     return all_teams
 
-def calculate_all_epa_opr(events, season, controller: Controller, region_code=""):
+def calculate_all_epa_opr(events, season, region_code=""):
     """
     Calculate and update epa and opr for all teams, able to be filtered by specifying a list of events
     :param season: Four digit representing the year of the game
-    :param events: List of (event start date, event code) objects
-    :param controller: App controller in order to handle settings (like calculating avg)
+    :param events: List of (event start date, event code) object
     :param region_code: (OPTIONAL) Region Code to use while determining starting average
     :return: A list of all teams who have participated in atleast one of the given events with updated statistics
     """
@@ -196,15 +172,7 @@ def calculate_all_epa_opr(events, season, controller: Controller, region_code=""
     if region_code: print("Calculating Starting Averages from Region:", region_code)
     else: print("Calculating Starting Average from World Teams")
 
-    if controller.shared_data["setting_calc_avg"]:
-        avg_total, avg_auto, avg_teleop = calculate_start_avg(early_events, season)
-    else:
-        avg_total = controller.shared_data["epa_avg"]
-        avg_auto = controller.shared_data["epa_auto_avg"]
-        avg_teleop = controller.shared_data["epa_tele_avg"]
-        print("Using given predetermined averages.")
-        print(f"Average Total: {avg_total}, Average Auto: {avg_auto}, Average TeleOP: {avg_teleop}")
-
+    avg_total, avg_auto, avg_teleop = calculate_start_avg(early_events, season)
 
     event_codes = [event[1] for event in events] # get event codes from tuple
 
