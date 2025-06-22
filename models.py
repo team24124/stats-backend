@@ -40,7 +40,7 @@ def get_team_model(db: SQLAlchemy):
 
         # General Info
         team_number = Column(Integer, primary_key=True)
-        team_name = Column(String(80), unique=True, nullable=False)
+        team_name = Column(String(80), nullable=False)
         country = Column(String)
         state_province = Column(String)
         city = Column(String)

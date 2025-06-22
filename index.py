@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api, reqparse, marshal_with, abort, fields
 from sqlalchemy import Column
 from sqlalchemy.types import ARRAY, String, Integer, Float, JSON
+
+from generate_data import calculate_stats
 from stats.team import Team as TeamObj
 
 from models import team_model_fields, get_team_model
@@ -66,6 +68,11 @@ api.add_resource(Team, '/api/teams/<int:team_number>')
 def home():
     return '<h1>Hello World</h1>'
 
+@app.route('/api/cron/update')
+def update():
+    with app.app_context():
+        calculate_stats(db, TeamModel)
+    return '<p>Data successfully updated.</p>'
 
 if __name__ == '__main__':
     app.run(debug=True)
