@@ -21,7 +21,7 @@ class Team(Resource):
         return team
 
 api.add_resource(Teams, '/api/teams/')
-api.add_resource(Team, '/api/teams/<int: team_number>')
+api.add_resource(Team, '/api/teams/<int:team_number>')
 
 @app.route('/')
 def index():
